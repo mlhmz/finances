@@ -1,4 +1,5 @@
 node_modules/
-cypress/videos/
-cypress/screenshots/
+# Playwright
+playwright-report/
+test-results/
 finances.db

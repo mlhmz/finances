@@ -1,6 +1,6 @@
 # Skill: /dev
 
-Implement a feature end-to-end: code, unit tests, Cypress E2E tests — iterate until everything passes.
+Implement a feature end-to-end: code, unit tests, Playwright E2E tests — iterate until everything passes.
 
 ## Usage
 
@@ -48,7 +48,7 @@ Break the spec into concrete tasks. Write them as a checklist under **Plan** in 
 - [ ] Data model / migrations
 - [ ] Route handlers / business logic
 - [ ] Unit tests
-- [ ] Cypress E2E tests
+- [ ] Playwright E2E tests
 - [ ] Manual verification
 ```
 
@@ -76,13 +76,31 @@ go test ./...
 
 Append the output under **Test Results**. If tests fail, fix the code or tests and re-run. Repeat until all pass.
 
-### Step 6 — Cypress E2E tests
+### Step 6 — Playwright E2E tests
 
-Write Cypress tests that exercise the feature through the browser. Run them:
+Write Playwright tests in `e2e/` that exercise the feature through the browser.
+Test files follow the pattern `e2e/<feature>.spec.ts`.
+
+Run all E2E tests:
 
 ```bash
-npx cypress run
+npx playwright test
 ```
+
+Useful flags:
+
+```bash
+npx playwright test --headed          # watch tests run in the browser
+npx playwright test --ui              # interactive Playwright UI
+npx playwright test e2e/feature.spec.ts  # run a single spec
+npx playwright show-report            # open the HTML report after a run
+```
+
+> **Playwright MCP (if available):** When the Playwright MCP server is connected,
+> prefer using it to interact with and inspect the running app directly instead of
+> manually writing selectors. If Playwright tests are hard to get passing — e.g.
+> selectors can't be found or async timing is flaky — fall back to the Playwright
+> MCP to explore the live DOM and diagnose the issue before retrying.
 
 Append the output under **Test Results**. If tests fail, fix the code or tests and re-run. Repeat until all pass.
 
@@ -91,7 +109,7 @@ Append the output under **Test Results**. If tests fail, fix the code or tests a
 Do a final check:
 - All plan items are `[x]`
 - `go test ./...` passes
-- `npx cypress run` passes
+- `npx playwright test` passes
 - Feature behaves as described in the spec's Acceptance Criteria
 
 Update the progress file status to `## Status: Done`.
