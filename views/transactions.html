@@ -131,6 +131,11 @@
 
   .tx-menu[hidden] { display: none; }
 
+  .tx-menu.upward {
+    top: auto;
+    bottom: calc(100% + 4px);
+  }
+
   .tx-menu-item {
     display: block;
     width: 100%;
@@ -559,18 +564,30 @@
     closeTxForm();
   });
 
-  // Action menu toggle
+  // Action menu toggle — flips upward when near the bottom of the scroll container
   function toggleTxMenu(id) {
     const menu = document.getElementById('tx-menu-' + id);
     const isOpen = !menu.hidden;
-    document.querySelectorAll('.tx-menu').forEach(m => m.setAttribute('hidden', ''));
-    if (!isOpen) menu.removeAttribute('hidden');
+    document.querySelectorAll('.tx-menu').forEach(m => {
+      m.setAttribute('hidden', '');
+      m.classList.remove('upward');
+    });
+    if (!isOpen) {
+      menu.removeAttribute('hidden');
+      const list = document.getElementById('transaction-list');
+      if (list && menu.getBoundingClientRect().bottom > list.getBoundingClientRect().bottom) {
+        menu.classList.add('upward');
+      }
+    }
   }
 
   // Close menus on outside click
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.tx-actions')) {
-      document.querySelectorAll('.tx-menu').forEach(m => m.setAttribute('hidden', ''));
+      document.querySelectorAll('.tx-menu').forEach(m => {
+        m.setAttribute('hidden', '');
+        m.classList.remove('upward');
+      });
     }
   });
 
