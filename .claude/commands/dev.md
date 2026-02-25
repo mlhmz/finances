@@ -66,6 +66,10 @@ Work through each task in order. For each task:
    - Notes: ...
    ```
 
+> **gopls LSP (Go files):** The `gopls-lsp` plugin provides live Go code intelligence. Use it for diagnostics, hover info, go-to-definition, and refactoring hints while editing `.go` files. If gopls flags a type error or unused import, fix it before moving on.
+
+> **Frontend / UI tasks (views/):** When implementing HTML templates or any UI work, invoke the `frontend-design` skill. It produces production-grade, visually distinctive interfaces — not generic boilerplate. Use it whenever you touch files under `views/`.
+
 ### Step 5 — Unit tests
 
 Write unit tests for all non-trivial logic. Run them:
@@ -76,7 +80,13 @@ go test ./...
 
 Append the output under **Test Results**. If tests fail, fix the code or tests and re-run. Repeat until all pass.
 
-### Step 6 — Playwright E2E tests
+### Step 6 — Simplify
+
+Once unit tests pass, launch the `code-simplifier` agent (via the Task tool with `subagent_type: code-simplifier`) to refine all code modified during implementation. The agent will improve clarity, remove redundancy, and enforce project conventions — without changing behaviour.
+
+If the agent proposes any changes, re-run `go test ./...` to confirm everything still passes before continuing.
+
+### Step 7 — Playwright E2E tests
 
 Write Playwright tests in `e2e/` that exercise the feature through the browser.
 Test files follow the pattern `e2e/<feature>.spec.ts`.
@@ -104,7 +114,7 @@ npx playwright show-report            # open the HTML report after a run
 
 Append the output under **Test Results**. If tests fail, fix the code or tests and re-run. Repeat until all pass.
 
-### Step 7 — Verify
+### Step 8 — Verify
 
 Do a final check:
 - All plan items are `[x]`
@@ -114,7 +124,7 @@ Do a final check:
 
 Update the progress file status to `## Status: Done`.
 
-### Step 8 — Summary
+### Step 9 — Summary
 
 Tell the user:
 - What was implemented
