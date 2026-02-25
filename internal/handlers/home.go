@@ -1,9 +1,23 @@
 package handlers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/mlhmz/finances/internal/middleware"
+	"github.com/mlhmz/finances/internal/repository"
+)
 
 func Index(c *fiber.Ctx) error {
-	return c.Render("index", fiber.Map{"Title": "Finances"})
+	repo := repository.NewUserRepository(middleware.CurrentUserID(c))
+	user, err := repo.Get()
+	if err != nil {
+		return c.Redirect("/login", fiber.StatusFound)
+	}
+	return c.Render("index", fiber.Map{
+		"Title":        "Finances",
+		"UserName":     user.FullName,
+		"UserInitials": user.Initials,
+		"UserEmail":    user.Email,
+	})
 }
 
 func Greet(c *fiber.Ctx) error {

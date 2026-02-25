@@ -34,11 +34,13 @@ func main() {
 	app.Post("/register", handlers.RegisterSubmit)
 	app.Get("/auth/refresh", handlers.Refresh)
 
-	// Protected routes — auth middleware applied per-handler
-	authMw := middleware.AuthMiddleware(cfg.JWTSecret, cfg.JWTAccessTTL)
-	app.Get("/", authMw, handlers.Index)
-	app.Get("/greet", authMw, handlers.Greet)
-	app.Post("/auth/logout", authMw, handlers.Logout)
+	// Protected routes — all behind a single auth middleware group
+	protected := app.Group("", middleware.AuthMiddleware(cfg.JWTSecret, cfg.JWTAccessTTL))
+	protected.Get("/", handlers.Index)
+	protected.Get("/greet", handlers.Greet)
+	protected.Get("/profile", handlers.ProfilePage)
+	protected.Post("/profile", handlers.ProfileUpdate)
+	protected.Post("/auth/logout", handlers.Logout)
 
 	log.Fatal(app.Listen(cfg.Port))
 }

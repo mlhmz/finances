@@ -8,6 +8,13 @@ import (
 	"github.com/mlhmz/finances/internal/models"
 )
 
+// CurrentUserID returns the authenticated user's ID stored by AuthMiddleware.
+// Returns "" if called outside an authenticated context.
+func CurrentUserID(c *fiber.Ctx) string {
+	id, _ := c.Locals("userID").(string)
+	return id
+}
+
 // AuthMiddleware returns a Fiber handler that enforces JWT authentication.
 //
 // Flow:
