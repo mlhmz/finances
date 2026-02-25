@@ -99,7 +99,7 @@ test.describe("New user registration + OTP flow (API)", () => {
 	test("unknown email → redirects to /register", async ({ request }) => {
 		const email = `e2e-unknown-${TS}@example.com`;
 		const res = await request.post("/auth/request", { form: { email } });
-		expect(res.url()).toMatch(/\/register/);
+		expect(res.headers()["hx-redirect"]).toMatch(/\/register/);
 		// drain possible OTP (no user created yet — just a guard)
 	});
 
