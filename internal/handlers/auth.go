@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/url"
-	"sync"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -65,19 +65,21 @@ func clearAuthCookies(c *fiber.Ctx) {
 
 // ─── OTP helper ──────────────────────────────────────────────────────────────
 
-// lastOTPByEmail stores the most recently issued plaintext OTP per email address.
-// Only populated and exposed when TEST_MODE=1; never used in production.
-var (
-	lastOTPByEmail = map[string]string{}
-	lastOTPMu      sync.Mutex
-)
+// testOTPCode is the fixed OTP used in TEST_MODE so tests don't need a backdoor route.
+const testOTPCode = "00000000"
 
 func issueOTP(userID, email string) error {
-	code, hash, err := auth.GenerateOTP()
-	if err != nil {
-		return err
+	var code, hash string
+	if os.Getenv("TEST_MODE") == "1" {
+		code = testOTPCode
+		hash = auth.HashOTP(code)
+	} else {
+		var err error
+		code, hash, err = auth.GenerateOTP()
+		if err != nil {
+			return err
+		}
 	}
-	// delete any existing OTPs for this user
 	db.DB.Where("user_id = ?", userID).Delete(&models.OTPToken{})
 	token := models.OTPToken{
 		ID:        uuid.New().String(),
@@ -88,24 +90,8 @@ func issueOTP(userID, email string) error {
 	if res := db.DB.Create(&token); res.Error != nil {
 		return res.Error
 	}
-	lastOTPMu.Lock()
-	lastOTPByEmail[email] = code
-	lastOTPMu.Unlock()
 	fmt.Printf("[AUTH] OTP for %s: %s (expires in 15 minutes)\n", email, code)
 	return nil
-}
-
-// TestLastOTP returns the last issued OTP for the given ?email= param as plain text.
-// Only available when TEST_MODE=1 — must never be registered in production.
-func TestLastOTP(c *fiber.Ctx) error {
-	email := c.Query("email")
-	if email == "" {
-		return c.Status(fiber.StatusBadRequest).SendString("email query param required")
-	}
-	lastOTPMu.Lock()
-	code := lastOTPByEmail[email]
-	lastOTPMu.Unlock()
-	return c.SendString(code)
 }
 
 // ─── Handlers ────────────────────────────────────────────────────────────────

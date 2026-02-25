@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
@@ -40,11 +39,6 @@ func main() {
 	app.Get("/", authMw, handlers.Index)
 	app.Get("/greet", authMw, handlers.Greet)
 	app.Post("/auth/logout", authMw, handlers.Logout)
-
-	// Test-only backdoor — exposes last OTP; only active when TEST_MODE=1
-	if os.Getenv("TEST_MODE") == "1" {
-		app.Get("/test/last-otp", handlers.TestLastOTP)
-	}
 
 	log.Fatal(app.Listen(cfg.Port))
 }

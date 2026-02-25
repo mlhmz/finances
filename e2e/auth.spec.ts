@@ -16,24 +16,17 @@ const TS = Date.now();
 const RETURN_USER_EMAIL = `e2e-return-${TS}@example.com`;
 const LOCKOUT_EMAIL = `e2e-lockout-${TS}@example.com`;
 
+// In TEST_MODE the server always issues the fixed OTP "00000000".
+const TEST_OTP = "00000000";
+
 type Req = import("@playwright/test").APIRequestContext;
 
-/** Fetch the last issued OTP for a given email from the test backdoor. */
-async function getLastOTP(request: Req, email: string): Promise<string> {
-	const res = await request.get("/test/last-otp", { params: { email } });
-	expect(res.status()).toBe(200);
-	const text = (await res.text()).trim();
-	expect(text).toHaveLength(8);
-	return text;
-}
-
-/** Register a brand-new user and drain the registration OTP. */
+/** Register a brand-new user (registration OTP is the fixed TEST_OTP). */
 async function registerUser(request: Req, email: string, name: string) {
 	await request.post("/auth/request", { form: { email } });
 	await request.post("/register", {
 		form: { email, full_name: name, currency: "EUR" },
 	});
-	await getLastOTP(request, email);
 }
 
 // ── Auth guards ───────────────────────────────────────────────────────────────
@@ -119,10 +112,8 @@ test.describe("New user registration + OTP flow (API)", () => {
 		});
 		expect(regRes.status()).toBe(200);
 
-		const otp = await getLastOTP(request, email);
-
 		const verifyRes = await request.post("/auth/verify", {
-			form: { email, code: otp },
+			form: { email, code: TEST_OTP },
 		});
 		expect(verifyRes.status()).toBe(200);
 		expect(verifyRes.headers()["hx-redirect"]).toBe("/");
@@ -151,7 +142,6 @@ test.describe("Known-user login flow", () => {
 		});
 		expect(res.status()).toBe(200);
 		expect(await res.text()).toContain('name="code"');
-		await getLastOTP(request, RETURN_USER_EMAIL); // drain
 	});
 
 	test("wrong OTP returns attempt-count error fragment", async ({
@@ -162,19 +152,16 @@ test.describe("Known-user login flow", () => {
 			form: { email: RETURN_USER_EMAIL, code: "WRONGCO1" },
 		});
 		expect(await res.text()).toMatch(/incorrect code|2 attempt/i);
-		// Issue + drain a fresh OTP so remaining tests start clean
+		// Re-issue a fresh OTP so the attempt counter resets for subsequent tests
 		await request.post("/auth/request", { form: { email: RETURN_USER_EMAIL } });
-		await getLastOTP(request, RETURN_USER_EMAIL);
 	});
 
 	test("correct OTP issues cookies and returns HX-Redirect: /", async ({
 		request,
 	}) => {
 		await request.post("/auth/request", { form: { email: RETURN_USER_EMAIL } });
-		const otp = await getLastOTP(request, RETURN_USER_EMAIL);
-
 		const res = await request.post("/auth/verify", {
-			form: { email: RETURN_USER_EMAIL, code: otp },
+			form: { email: RETURN_USER_EMAIL, code: TEST_OTP },
 		});
 		expect(res.status()).toBe(200);
 		expect(res.headers()["hx-redirect"]).toBe("/");
@@ -198,8 +185,7 @@ test.describe("Logout", () => {
 		await request.post("/register", {
 			form: { email, full_name: "Logout User", currency: "EUR" },
 		});
-		const otp = await getLastOTP(request, email);
-		await request.post("/auth/verify", { form: { email, code: otp } });
+		await request.post("/auth/verify", { form: { email, code: TEST_OTP } });
 
 		// Now authenticated; logout should clear cookies and land on /login
 		const res = await request.post("/auth/logout");
@@ -224,9 +210,8 @@ test.describe("OTP lockout", () => {
 		}
 
 		// OTP deleted after 3 failures; even the correct code now fails
-		const correctOtp = await getLastOTP(request, LOCKOUT_EMAIL);
 		const res = await request.post("/auth/verify", {
-			form: { email: LOCKOUT_EMAIL, code: correctOtp },
+			form: { email: LOCKOUT_EMAIL, code: TEST_OTP },
 		});
 		expect(await res.text()).toMatch(
 			/no active code|too many attempts|request a new/i,
