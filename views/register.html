@@ -128,7 +128,7 @@
           <label for="reg-currency">Currency</label>
           <select id="reg-currency" name="currency" required>
             {{range .Currencies}}
-              <option value="{{.}}">{{.}}</option>
+              <option value="{{.Code}}">{{.Name}} ({{.Code}})</option>
             {{end}}
           </select>
         </div>

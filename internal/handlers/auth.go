@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/mlhmz/finances/internal/auth"
+	"github.com/mlhmz/finances/internal/currency"
 	"github.com/mlhmz/finances/internal/db"
 	"github.com/mlhmz/finances/internal/models"
 	"gorm.io/gorm"
@@ -193,7 +194,7 @@ func RegisterPage(c *fiber.Ctx) error {
 	}
 	return c.Render("register", fiber.Map{
 		"Email":      email,
-		"Currencies": models.AllowedCurrencies,
+		"Currencies": currency.Supported(),
 	})
 }
 
@@ -201,69 +202,48 @@ func RegisterPage(c *fiber.Ctx) error {
 func RegisterSubmit(c *fiber.Ctx) error {
 	email := c.FormValue("email")
 	fullName := c.FormValue("full_name")
-	currency := c.FormValue("currency")
+	currencyCode := c.FormValue("currency")
+
+	supported := currency.Supported()
+
+	renderRegister := func(extra fiber.Map) error {
+		data := fiber.Map{"Email": email, "Currencies": supported}
+		for k, v := range extra {
+			data[k] = v
+		}
+		return c.Render("register", data)
+	}
 
 	// Validate email not already taken (race-condition guard)
 	var existing models.User
 	if res := db.DB.Where("email = ?", email).First(&existing); res.Error == nil {
-		return c.Render("register", fiber.Map{
-			"Email":      email,
-			"Currencies": models.AllowedCurrencies,
-			"Error":      "Email is already registered.",
-		})
+		return renderRegister(fiber.Map{"Error": "Email is already registered."})
 	}
 
 	if fullName == "" {
-		return c.Render("register", fiber.Map{
-			"Email":      email,
-			"Currencies": models.AllowedCurrencies,
-			"Error":      "Full name is required.",
-		})
+		return renderRegister(fiber.Map{"Error": "Full name is required."})
 	}
 
-	validCurrency := false
-	for _, c := range models.AllowedCurrencies {
-		if c == currency {
-			validCurrency = true
-			break
-		}
-	}
-	if !validCurrency {
-		return c.Render("register", fiber.Map{
-			"Email":      email,
-			"Currencies": models.AllowedCurrencies,
-			"Error":      "Invalid currency.",
-		})
+	if _, ok := currency.Get(currencyCode); !ok {
+		return renderRegister(fiber.Map{"Error": "Invalid currency."})
 	}
 
 	user := models.User{
 		ID:       uuid.New().String(),
 		Email:    email,
 		FullName: fullName,
-		Currency: currency,
+		Currency: currencyCode,
 		Initials: models.DeriveInitials(fullName),
 	}
 	if res := db.DB.Create(&user); res.Error != nil {
-		return c.Render("register", fiber.Map{
-			"Email":      email,
-			"Currencies": models.AllowedCurrencies,
-			"Error":      "Failed to create account. Please try again.",
-		})
+		return renderRegister(fiber.Map{"Error": "Failed to create account. Please try again."})
 	}
 
 	if err := issueOTP(user.ID, email); err != nil {
-		return c.Render("register", fiber.Map{
-			"Email":      email,
-			"Currencies": models.AllowedCurrencies,
-			"Error":      "Account created but failed to send code. Please log in.",
-		})
+		return renderRegister(fiber.Map{"Error": "Account created but failed to send code. Please log in."})
 	}
 
-	return c.Render("register", fiber.Map{
-		"Email":      email,
-		"Currencies": models.AllowedCurrencies,
-		"ShowOTP":    true,
-	})
+	return renderRegister(fiber.Map{"ShowOTP": true})
 }
 
 // Logout handles POST /auth/logout.

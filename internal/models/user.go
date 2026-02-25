@@ -16,9 +16,6 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-// AllowedCurrencies lists the currencies currently supported by the application.
-var AllowedCurrencies = []string{"EUR"}
-
 // DeriveInitials computes uppercase initials from a full name.
 // Single word → first character. Two or more words → first char of first + first char of last.
 func DeriveInitials(fullName string) string {
@@ -27,10 +24,10 @@ func DeriveInitials(fullName string) string {
 	case 0:
 		return ""
 	case 1:
-		return strings.ToUpper(string([]rune(parts[0])[0:1]))
+		return strings.ToUpper(string([]rune(parts[0])[:1]))
 	default:
-		first := []rune(parts[0])
-		last := []rune(parts[len(parts)-1])
-		return strings.ToUpper(string(first[0:1]) + string(last[0:1]))
+		first := []rune(parts[0])[0]
+		last := []rune(parts[len(parts)-1])[0]
+		return strings.ToUpper(string([]rune{first, last}))
 	}
 }
