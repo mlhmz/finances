@@ -47,7 +47,7 @@ export default defineConfig({
    * Remove `webServer` if you prefer to start the app manually first.
    */
   webServer: {
-    command: 'go run ./cmd/finances',
+    command: 'TEST_MODE=1 go run ./cmd/finances',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
