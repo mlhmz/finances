@@ -63,9 +63,36 @@ func (m Money) Format() string {
 	return strings.ReplaceAll(formatted, " ", "")
 }
 
+// Abs returns a copy of m with a non-negative amount.
+func (m Money) Abs() Money {
+	if m.Amount < 0 {
+		return Money{Amount: -m.Amount, Currency: m.Currency}
+	}
+	return m
+}
+
+// IsNegative reports whether the amount is negative (i.e. an expense).
+func (m Money) IsNegative() bool {
+	return m.Amount < 0
+}
+
 // IsZero reports whether the amount is zero.
 func (m Money) IsZero() bool {
 	return m.Amount == 0
+}
+
+// DecimalString returns the amount as a signed decimal string, e.g. "-42.50".
+func (m Money) DecimalString() string {
+	sign := ""
+	abs := m.Amount
+	if abs < 0 {
+		sign = "-"
+		abs = -abs
+	}
+	divisor := int64(math.Pow10(m.Currency.Exponent))
+	major := abs / divisor
+	minor := abs % divisor
+	return fmt.Sprintf("%s%d.%0*d", sign, major, m.Currency.Exponent, minor)
 }
 
 // moneyJSON is the wire format: {"amount":"10.99","currency":"EUR"}.
@@ -76,17 +103,7 @@ type moneyJSON struct {
 
 // MarshalJSON encodes Money as {"amount":"10.99","currency":"EUR"}.
 func (m Money) MarshalJSON() ([]byte, error) {
-	sign := ""
-	abs := m.Amount
-	if abs < 0 {
-		sign = "-"
-		abs = -abs
-	}
-	divisor := int64(math.Pow10(m.Currency.Exponent))
-	major := abs / divisor
-	minor := abs % divisor
-	decStr := fmt.Sprintf("%s%d.%0*d", sign, major, m.Currency.Exponent, minor)
-	return json.Marshal(moneyJSON{Amount: decStr, Currency: m.Currency.Code})
+	return json.Marshal(moneyJSON{Amount: m.DecimalString(), Currency: m.Currency.Code})
 }
 
 // UnmarshalJSON decodes {"amount":"10.99","currency":"EUR"} into Money.
@@ -99,7 +116,7 @@ func (m *Money) UnmarshalJSON(data []byte) error {
 	if !ok {
 		return fmt.Errorf("money: unsupported currency %q", raw.Currency)
 	}
-	amount, err := parseDecimal(raw.Amount, c.Exponent)
+	amount, err := ParseDecimal(raw.Amount, c.Exponent)
 	if err != nil {
 		return fmt.Errorf("money: invalid amount %q: %w", raw.Amount, err)
 	}
@@ -108,9 +125,9 @@ func (m *Money) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// parseDecimal converts a decimal string (e.g. "10.99") to minor units using
+// ParseDecimal converts a decimal string (e.g. "10.99") to minor units using
 // the given exponent (e.g. 2 for EUR → result 1099).
-func parseDecimal(s string, exponent int) (int64, error) {
+func ParseDecimal(s string, exponent int) (int64, error) {
 	negative := false
 	if strings.HasPrefix(s, "-") {
 		negative = true

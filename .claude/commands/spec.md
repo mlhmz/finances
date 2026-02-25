@@ -26,12 +26,12 @@ Files you will write:
 
 ### Step 3 — Iterative brainstorm
 
-Think step by step. Each iteration:
-1. Identify open questions, edge cases, and design choices.
+Think step by step, **one iteration at a time**. For each iteration:
+1. Identify open questions, edge cases, and design choices unlocked by what you know so far.
 2. Visualize relevant flows, layouts, or data structures in ASCII-Art where it helps.
 3. List what you know vs. what is still unclear.
 
-For every decision or question, present the options as Markdown checkboxes so the user can check their choice:
+For every decision or question, present the options as Markdown checkboxes:
 
 ```
 **Question: How should amounts be formatted?**
@@ -40,11 +40,12 @@ For every decision or question, present the options as Markdown checkboxes so th
 - [ ] Float (e.g. 10.99)
 ```
 
-Continue iterating until all decisions are captured as checkbox lists.
+**After each iteration:**
+- Append the iteration to `/spec/{nr}_{summary}_brainstorm.md`.
+- Show the user only the questions from **this iteration** and wait for their answers before continuing.
+- Once the user returns with checked boxes (`[x]`), update the brainstorm file with their selections, then proceed to the next iteration.
 
-Write the full brainstorm — all iterations, ASCII diagrams, and checkbox questions — into `/spec/{nr}_{summary}_brainstorm.md`.
-
-After writing the brainstorm file, show the user all unchecked checkbox questions and ask them to check their choices. Once the user returns with checked boxes (`[x]`), update the brainstorm file with the selections and proceed.
+Repeat until all decisions are resolved and no new questions arise.
 
 ### Step 4 — Write the spec
 

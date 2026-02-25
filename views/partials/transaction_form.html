@@ -1,0 +1,110 @@
+{{$isEdit := .IsEdit}}
+{{$tx := .Transaction}}
+{{$errors := .Errors}}
+{{$initType := "income"}}
+{{if $tx}}{{if not (isIncome $tx.Amount)}}{{$initType = "expense"}}{{end}}{{end}}
+{{if .FormType}}{{$initType = .FormType}}{{end}}
+
+<div class="tx-form-wrap">
+  <div class="tx-form-header">
+    <h2 class="tx-form-title">{{if $isEdit}}Edit Transaction{{else}}New Transaction{{end}}</h2>
+    <button type="button" class="tx-close-btn" onclick="closeTxForm()" aria-label="Close">✕</button>
+  </div>
+
+  <form
+    {{if $isEdit}}hx-put="/transactions/{{$tx.ID}}"{{else}}hx-post="/transactions"{{end}}
+    hx-target="#tx-form-content"
+    hx-swap="innerHTML">
+
+    <input type="hidden" name="type" id="tx-type-input" value="{{$initType}}">
+
+    <div class="type-toggle">
+      <button type="button" class="type-btn income" data-type="income" onclick="setTxType('income')">
+        Income
+      </button>
+      <button type="button" class="type-btn expense" data-type="expense" onclick="setTxType('expense')">
+        Expense
+      </button>
+    </div>
+    {{if and $errors (index $errors "type")}}
+      <p class="field-error">{{index $errors "type"}}</p>
+    {{end}}
+
+    <div class="form-field">
+      <label>Amount &amp; Currency</label>
+      <div class="amount-row">
+        <wa-input
+          type="text"
+          name="amount"
+          placeholder="0.00"
+          value="{{if $tx}}{{absAmountStr $tx.Amount}}{{else}}{{.FormAmount}}{{end}}"
+          style="flex:1;"
+        ></wa-input>
+        <select name="currency" class="form-select currency-select">
+          {{$selectedCurrency := .UserCurrency}}
+          {{if $tx}}{{$selectedCurrency = $tx.Amount.Currency.Code}}{{end}}
+          {{if .FormCurrency}}{{$selectedCurrency = .FormCurrency}}{{end}}
+          {{range .Currencies}}
+            <option value="{{.Code}}" {{if eq .Code $selectedCurrency}}selected{{end}}>{{.Code}}</option>
+          {{end}}
+        </select>
+      </div>
+      {{if and $errors (index $errors "amount")}}
+        <p class="field-error">{{index $errors "amount"}}</p>
+      {{end}}
+      {{if and $errors (index $errors "currency")}}
+        <p class="field-error">{{index $errors "currency"}}</p>
+      {{end}}
+    </div>
+
+    <div class="form-field">
+      <label for="tx-title">Title</label>
+      <wa-input
+        id="tx-title"
+        name="title"
+        type="text"
+        placeholder="e.g. Grocery shopping"
+        value="{{if $tx}}{{$tx.Title}}{{else}}{{.FormTitle}}{{end}}"
+        style="width:100%;"
+      ></wa-input>
+      {{if and $errors (index $errors "title")}}
+        <p class="field-error">{{index $errors "title"}}</p>
+      {{end}}
+    </div>
+
+    <div class="form-field">
+      <label for="tx-date">Date &amp; Time</label>
+      <input
+        type="datetime-local"
+        id="tx-date"
+        name="date"
+        class="datetime-input"
+        value="{{if $tx}}{{fmtDateTimeInput $tx.Date}}{{else if .FormDate}}{{.FormDate}}{{else}}{{nowDateTimeInput}}{{end}}"
+      />
+      {{if and $errors (index $errors "date")}}
+        <p class="field-error">{{index $errors "date"}}</p>
+      {{end}}
+    </div>
+
+    <div class="form-field">
+      <label for="tx-desc">
+        Description
+        <span style="color:var(--wa-color-text-quiet,#aaa);font-weight:400;text-transform:none;font-size:0.75rem;">(optional)</span>
+      </label>
+      <textarea
+        id="tx-desc"
+        name="description"
+        class="desc-textarea"
+        rows="2"
+        placeholder="Add notes..."
+      >{{if $tx}}{{$tx.Description}}{{else}}{{.FormDescription}}{{end}}</textarea>
+    </div>
+
+    <div class="tx-form-actions">
+      <wa-button type="button" variant="neutral" onclick="closeTxForm()">Cancel</wa-button>
+      <wa-button type="submit" variant="brand">Save</wa-button>
+    </div>
+  </form>
+</div>
+
+<script>setTxType('{{$initType}}');</script>

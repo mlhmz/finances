@@ -1,0 +1,28 @@
+<div id="tx-{{.ID}}" class="tx-row">
+  <div class="tx-row-main">
+    <span class="tx-date">{{fmtDate .Date}}</span>
+    <div class="tx-info">
+      <span class="tx-title">{{.Title}}</span>
+      {{if .Description}}<span class="tx-desc">{{.Description}}</span>{{end}}
+    </div>
+    <span class="tx-amount {{if isIncome .Amount}}income{{else}}expense{{end}}">
+      {{fmtAmountDisplay .Amount}}
+    </span>
+    <div class="tx-actions">
+      <button class="tx-menu-btn" onclick="toggleTxMenu('{{.ID}}')" aria-label="Actions">⋮</button>
+      <div id="tx-menu-{{.ID}}" class="tx-menu" hidden>
+        <button
+          class="tx-menu-item"
+          hx-get="/transactions/{{.ID}}/edit"
+          hx-target="#tx-form-content"
+          hx-swap="innerHTML"
+          hx-on::after-settle="openTxForm()">Edit</button>
+        <button
+          class="tx-menu-item tx-menu-delete"
+          hx-get="/transactions/{{.ID}}/confirm-delete"
+          hx-target="#tx-{{.ID}}"
+          hx-swap="outerHTML">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>

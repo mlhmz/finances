@@ -1,0 +1,17 @@
+<div id="tx-{{.ID}}" class="tx-confirm">
+  <span class="tx-confirm-msg">Delete <strong>"{{.Title}}"</strong>?</span>
+  <div class="tx-confirm-actions">
+    <wa-button
+      size="small"
+      variant="neutral"
+      hx-get="/transactions/{{.ID}}/row"
+      hx-target="#tx-{{.ID}}"
+      hx-swap="outerHTML">Cancel</wa-button>
+    <wa-button
+      size="small"
+      variant="danger"
+      hx-delete="/transactions/{{.ID}}"
+      hx-target="#tx-{{.ID}}"
+      hx-swap="outerHTML">Delete</wa-button>
+  </div>
+</div>
