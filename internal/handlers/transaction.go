@@ -14,7 +14,7 @@ import (
 	"github.com/mlhmz/finances/internal/repository"
 )
 
-const txPageSize = 20
+var txValidPageSizes = map[int]bool{5: true, 10: true, 15: true, 20: true, 25: true}
 
 // TransactionsPage handles GET /transactions.
 func TransactionsPage(c *fiber.Ctx) error {
@@ -23,14 +23,18 @@ func TransactionsPage(c *fiber.Ctx) error {
 	if page < 1 {
 		page = 1
 	}
+	pageSize := c.QueryInt("pageSize", 10)
+	if !txValidPageSizes[pageSize] {
+		pageSize = 10
+	}
 
 	txRepo := repository.NewTransactionRepository(userID)
-	transactions, total, err := txRepo.List(page, txPageSize)
+	transactions, total, err := txRepo.List(page, pageSize)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to load transactions.")
 	}
 
-	totalPages := int(math.Ceil(float64(total) / float64(txPageSize)))
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
 	if totalPages < 1 {
 		totalPages = 1
 	}
@@ -47,6 +51,7 @@ func TransactionsPage(c *fiber.Ctx) error {
 		"ActivePage":   "transactions",
 		"Transactions": transactions,
 		"Page":         page,
+		"PageSize":     pageSize,
 		"TotalPages":   totalPages,
 		"UserCurrency": user.Currency,
 		"User":         user,
