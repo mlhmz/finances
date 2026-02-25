@@ -13,11 +13,10 @@ func Index(c *fiber.Ctx) error {
 		return c.Redirect("/login", fiber.StatusFound)
 	}
 	return c.Render("index", fiber.Map{
-		"Title":        "Finances",
-		"UserName":     user.FullName,
-		"UserInitials": user.Initials,
-		"UserEmail":    user.Email,
-	})
+		"Title":      "Home",
+		"ActivePage": "home",
+		"User":       user,
+	}, "layouts/app")
 }
 
 func Greet(c *fiber.Ctx) error {

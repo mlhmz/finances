@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{.Title}} — Finances</title>
+
+  <script src="https://kit.webawesome.com/fb84f228d5bd4f19.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: var(--wa-color-surface-sunken, #f5f5f5);
+      font-family: var(--wa-font-sans, system-ui, sans-serif);
+      color: var(--wa-color-text-loud, #111);
+    }
+
+    /* ── App Layout ── */
+    .app-layout { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--wa-color-surface-default, #fff);
+      border-right: 1px solid var(--wa-color-border-quiet, #e5e7eb);
+      display: flex;
+      flex-direction: column;
+      padding: 1.25rem 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0 1.25rem 1.25rem;
+      border-bottom: 1px solid var(--wa-color-border-quiet, #e5e7eb);
+      margin-bottom: 0.75rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .sidebar-brand-name {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--wa-color-text-loud, #111);
+    }
+
+    .sidebar-brand wa-icon {
+      color: var(--wa-color-primary-600, #2563eb);
+      font-size: 1.375rem;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0 0.75rem;
+      flex: 1;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--wa-color-text-quiet, #555);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      transition: background 0.12s, color 0.12s;
+    }
+
+    .sidebar-link:hover {
+      background: var(--wa-color-surface-sunken, #f5f5f5);
+      color: var(--wa-color-text-loud, #111);
+    }
+
+    .sidebar-link.active {
+      background: var(--wa-color-primary-50, #eff6ff);
+      color: var(--wa-color-primary-700, #1d4ed8);
+      font-weight: 600;
+    }
+
+    .sidebar-link wa-icon { font-size: 1rem; }
+
+    /* ── Sidebar user menu ── */
+    .sidebar-footer {
+      padding: 0.75rem;
+      border-top: 1px solid var(--wa-color-border-quiet, #e5e7eb);
+      margin-top: auto;
+    }
+
+    .user-menu-wrap { position: relative; }
+
+    .user-menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      width: 100%;
+      padding: 0.5rem 0.625rem;
+      background: none;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      transition: background 0.12s;
+    }
+
+    .user-menu-btn:hover { background: var(--wa-color-surface-sunken, #f5f5f5); }
+
+    .avatar-sm {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--wa-color-primary-600, #2563eb);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      flex-shrink: 0;
+    }
+
+    .user-menu-name {
+      flex: 1;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--wa-color-text-loud, #111);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-menu-dots {
+      color: var(--wa-color-text-quiet, #bbb);
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+
+    .user-menu-popup {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--wa-color-border-quiet, #e5e7eb);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      overflow: hidden;
+      z-index: 50;
+    }
+
+    .user-menu-popup[hidden] { display: none; }
+
+    .user-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      width: 100%;
+      padding: 0.5625rem 0.875rem;
+      text-decoration: none;
+      color: var(--wa-color-text-loud, #111);
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .user-menu-item:hover { background: var(--wa-color-surface-sunken, #f5f5f5); }
+    .user-menu-signout { color: var(--wa-color-danger-700, #b91c1c); }
+    .user-menu-item wa-icon { font-size: 0.9rem; }
+
+    /* ── Content area ── */
+    .content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Mobile header (hidden by default, shown at ≤480px) ── */
+    .mobile-header { display: none; }
+
+    /* ── Bottom Tab Bar (mobile only) ── */
+    .bottom-nav { display: none; }
+
+    /* ── Mobile overrides ── */
+    @media (max-width: 480px) {
+      .sidebar { display: none; }
+      .content { padding-bottom: 68px; }
+
+      .mobile-header {
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        height: 56px;
+        background: var(--wa-color-surface-default, #fff);
+        border-bottom: 1px solid var(--wa-color-border-quiet, #e5e7eb);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      }
+
+      .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--wa-color-surface-default, #fff);
+        border-top: 1px solid var(--wa-color-border-quiet, #e5e7eb);
+        height: 60px;
+        z-index: 100;
+        box-shadow: 0 -1px 6px rgba(0,0,0,0.04);
+      }
+
+      .bottom-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        text-decoration: none;
+        color: var(--wa-color-text-quiet, #888);
+        font-size: 0.6875rem;
+        font-weight: 500;
+      }
+
+      .bottom-nav-item.active { color: var(--wa-color-primary-600, #2563eb); }
+      .bottom-nav-item wa-icon { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ── Sidebar (desktop) ── -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-brand">
+      <wa-icon name="coins"></wa-icon>
+      <span class="sidebar-brand-name">Finances</span>
+    </a>
+
+    <nav class="sidebar-nav">
+      <a href="/" class="sidebar-link {{if eq .ActivePage "home"}}active{{end}}">
+        <wa-icon name="house"></wa-icon>
+        Home
+      </a>
+      <a href="/transactions" class="sidebar-link {{if eq .ActivePage "transactions"}}active{{end}}">
+        <wa-icon name="arrow-up-arrow-down"></wa-icon>
+        Transactions
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-menu-wrap">
+        <button class="user-menu-btn" onclick="toggleUserMenu()" type="button">
+          <span class="avatar-sm">{{.User.Initials}}</span>
+          <span class="user-menu-name">{{.User.FullName}}</span>
+          <span class="user-menu-dots">⋯</span>
+        </button>
+        <div id="user-menu" class="user-menu-popup" hidden>
+          <a href="/profile" class="user-menu-item">
+            <wa-icon name="circle-user"></wa-icon>
+            Profile
+          </a>
+          <form method="post" action="/auth/logout" style="margin:0;">
+            <button type="submit" class="user-menu-item user-menu-signout">
+              <wa-icon name="arrow-right-from-bracket"></wa-icon>
+              Sign out
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Page Content ── -->
+  <div class="content">
+    {{embed}}
+  </div><!-- .content -->
+
+</div><!-- .app-layout -->
+
+<!-- ── Bottom Tab Bar (mobile) ── -->
+<nav class="bottom-nav">
+  <a href="/" class="bottom-nav-item {{if eq .ActivePage "home"}}active{{end}}">
+    <wa-icon name="house"></wa-icon>
+    Home
+  </a>
+  <a href="/transactions" class="bottom-nav-item {{if eq .ActivePage "transactions"}}active{{end}}">
+    <wa-icon name="arrow-up-arrow-down"></wa-icon>
+    Transactions
+  </a>
+  <a href="/profile" class="bottom-nav-item {{if eq .ActivePage "profile"}}active{{end}}">
+    <wa-icon name="circle-user"></wa-icon>
+    Profile
+  </a>
+</nav>
+
+<script>
+  function toggleUserMenu() {
+    const menu = document.getElementById('user-menu');
+    menu.hidden = !menu.hidden;
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.user-menu-wrap')) {
+      const menu = document.getElementById('user-menu');
+      if (menu) menu.hidden = true;
+    }
+  });
+</script>
+
+</body>
+</html>

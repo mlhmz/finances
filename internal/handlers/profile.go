@@ -17,9 +17,11 @@ func ProfilePage(c *fiber.Ctx) error {
 		return c.Redirect("/login", fiber.StatusFound)
 	}
 	return c.Render("profile", fiber.Map{
+		"Title":      "Profile",
+		"ActivePage": "profile",
 		"User":       user,
 		"Currencies": currency.Supported(),
-	})
+	}, "layouts/app")
 }
 
 // ProfileUpdate handles POST /profile.
@@ -34,9 +36,14 @@ func ProfileUpdate(c *fiber.Ctx) error {
 	}
 
 	render := func(extra fiber.Map) error {
-		data := fiber.Map{"User": user, "Currencies": currency.Supported()}
+		data := fiber.Map{
+			"Title":      "Profile",
+			"ActivePage": "profile",
+			"User":       user,
+			"Currencies": currency.Supported(),
+		}
 		maps.Copy(data, extra)
-		return c.Render("profile", data)
+		return c.Render("profile", data, "layouts/app")
 	}
 
 	if fullName == "" {

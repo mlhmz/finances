@@ -43,6 +43,8 @@ func TransactionsPage(c *fiber.Ctx) error {
 
 	currencies := currency.Supported()
 	return c.Render("transactions", fiber.Map{
+		"Title":        "Transactions",
+		"ActivePage":   "transactions",
 		"Transactions": transactions,
 		"Page":         page,
 		"TotalPages":   totalPages,
@@ -50,13 +52,13 @@ func TransactionsPage(c *fiber.Ctx) error {
 		"User":         user,
 		"Currencies":   currencies,
 		"FormData": fiber.Map{
-			"IsEdit":      false,
-			"Transaction": nil,
-			"Currencies":  currencies,
+			"IsEdit":       false,
+			"Transaction":  nil,
+			"Currencies":   currencies,
 			"UserCurrency": user.Currency,
-			"Errors":      nil,
+			"Errors":       nil,
 		},
-	})
+	}, "layouts/app")
 }
 
 // CreateTransaction handles POST /transactions.

@@ -1,312 +1,192 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profile — Finances</title>
+<style>
+  .profile-main {
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-  <script src="https://kit.webawesome.com/fb84f228d5bd4f19.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+  .profile-card {
+    background: var(--wa-color-surface-default, #fff);
+    border-radius: var(--wa-border-radius-l, 12px);
+    box-shadow: var(--wa-shadow-m, 0 4px 24px rgba(0,0,0,0.08));
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 480px;
+  }
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
+  .profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--wa-color-border-quiet, #f0f0f0);
+  }
 
-    body {
-      min-height: 100vh;
-      margin: 0;
-      background: var(--wa-color-surface-sunken, #f5f5f5);
-      font-family: var(--wa-font-sans, system-ui, sans-serif);
-      color: var(--wa-color-text-loud, #111);
-    }
+  .avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--wa-color-primary-600, #2563eb);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.625rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+  }
 
-    /* ── Navigation ── */
-    .nav {
-      background: var(--wa-color-surface-default, #fff);
-      border-bottom: 1px solid var(--wa-color-border-quiet, #e5e7eb);
-      padding: 0 1.5rem;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
+  .profile-name {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--wa-color-text-loud, #111);
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.02em;
+  }
 
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      color: inherit;
-    }
+  .profile-email {
+    font-size: 0.9375rem;
+    color: var(--wa-color-text-quiet, #666);
+    margin: 0;
+  }
 
-    .nav-brand-name {
-      font-size: 1.125rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--wa-color-text-loud, #111);
-    }
+  .profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-    .nav-brand wa-icon {
-      color: var(--wa-color-primary-600, #2563eb);
-      font-size: 1.375rem;
-    }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
 
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
+  .field label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--wa-color-text-quiet, #555);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
 
-    .avatar-link {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--wa-color-primary-600, #2563eb);
-      color: #fff;
-      font-size: 0.6875rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-decoration: none;
-      transition: opacity 0.15s, transform 0.15s;
-      flex-shrink: 0;
-    }
+  .profile-select {
+    width: 100%;
+    padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+    border: 1px solid var(--wa-color-border-quiet, #ddd);
+    border-radius: var(--wa-border-radius-s, 6px);
+    font-size: 1rem;
+    background-color: var(--wa-color-surface-default, #fff);
+    color: var(--wa-color-text-loud, #111);
+    font-family: inherit;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    cursor: pointer;
+  }
 
-    .avatar-link:hover {
-      opacity: 0.85;
-      transform: scale(1.05);
-    }
+  .profile-select:focus {
+    outline: 2px solid var(--wa-color-primary-600, #2563eb);
+    outline-offset: 1px;
+    border-color: var(--wa-color-primary-600, #2563eb);
+  }
 
-    .logout-form { margin: 0; }
+  .form-actions { margin-top: 0.5rem; }
 
-    /* ── Profile content ── */
-    .main {
-      padding: 2.5rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+  .alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: var(--wa-border-radius-s, 6px);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 1rem;
+  }
 
-    .back-link {
-      align-self: flex-start;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.375rem;
-      font-size: 0.875rem;
-      color: var(--wa-color-text-quiet, #666);
-      text-decoration: none;
-      margin-bottom: 1.5rem;
-      transition: color 0.15s;
-    }
+  .alert-success {
+    background: var(--wa-color-success-50, #f0fdf4);
+    border: 1px solid var(--wa-color-success-200, #bbf7d0);
+    color: var(--wa-color-success-700, #15803d);
+  }
 
-    .back-link:hover { color: var(--wa-color-primary-600, #2563eb); }
+  .alert-error {
+    background: var(--wa-color-danger-50, #fef2f2);
+    border: 1px solid var(--wa-color-danger-200, #fecaca);
+    color: var(--wa-color-danger-700, #b91c1c);
+  }
 
-    .profile-card {
-      background: var(--wa-color-surface-default, #fff);
-      border-radius: var(--wa-border-radius-l, 12px);
-      box-shadow: var(--wa-shadow-m, 0 4px 24px rgba(0,0,0,0.08));
-      padding: 2.5rem 2rem;
-      width: 100%;
-      max-width: 480px;
-    }
+  .mobile-header-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
 
-    .profile-header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--wa-color-border-quiet, #f0f0f0);
-    }
+  @media (max-width: 480px) {
+    .profile-main { padding: 1.5rem 1rem; }
+    .profile-card { padding: 2rem 1.25rem; }
+  }
+</style>
 
-    .avatar-large {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: var(--wa-color-primary-600, #2563eb);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.625rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      margin-bottom: 1rem;
-      box-shadow: 0 4px 14px rgba(37,99,235,0.25);
-    }
+<!-- Mobile header -->
+<header class="mobile-header">
+  <span class="mobile-header-title">Profile</span>
+</header>
 
-    .profile-name {
-      font-size: 1.375rem;
-      font-weight: 700;
-      color: var(--wa-color-text-loud, #111);
-      margin: 0 0 0.25rem;
-      letter-spacing: -0.02em;
-    }
-
-    .profile-email {
-      font-size: 0.9375rem;
-      color: var(--wa-color-text-quiet, #666);
-      margin: 0;
-    }
-
-    /* ── Form ── */
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
-    }
-
-    label {
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: var(--wa-color-text-quiet, #555);
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-    }
-
-    select {
-      width: 100%;
-      padding: 0.5rem 2.25rem 0.5rem 0.75rem;
-      border: 1px solid var(--wa-color-border-quiet, #ddd);
-      border-radius: var(--wa-border-radius-s, 6px);
-      font-size: 1rem;
-      background-color: var(--wa-color-surface-default, #fff);
-      color: var(--wa-color-text-loud, #111);
-      font-family: inherit;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.75rem center;
-      cursor: pointer;
-    }
-
-    select:focus {
-      outline: 2px solid var(--wa-color-primary-600, #2563eb);
-      outline-offset: 1px;
-      border-color: var(--wa-color-primary-600, #2563eb);
-    }
-
-    .form-actions { margin-top: 0.5rem; }
-
-    .success {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: var(--wa-color-success-50, #f0fdf4);
-      border: 1px solid var(--wa-color-success-200, #bbf7d0);
-      color: var(--wa-color-success-700, #15803d);
-      border-radius: var(--wa-border-radius-s, 6px);
-      padding: 0.625rem 0.875rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-top: 1rem;
-    }
-
-    .error {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: var(--wa-color-danger-50, #fef2f2);
-      border: 1px solid var(--wa-color-danger-200, #fecaca);
-      color: var(--wa-color-danger-700, #b91c1c);
-      border-radius: var(--wa-border-radius-s, 6px);
-      padding: 0.625rem 0.875rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-top: 1rem;
-    }
-
-    @media (max-width: 480px) {
-      .nav { padding: 0 1rem; }
-      .main { padding: 1.5rem 1rem; }
-      .profile-card { padding: 2rem 1.25rem; }
-      .back-link { margin-bottom: 1rem; }
-    }
-  </style>
-</head>
-<body>
-
-  <nav class="nav">
-    <a href="/" class="nav-brand">
-      <wa-icon name="coins"></wa-icon>
-      <span class="nav-brand-name">Finances</span>
-    </a>
-    <div class="nav-actions">
-      <a href="/profile" class="avatar-link" title="{{.User.FullName}}">{{.User.Initials}}</a>
-      <form class="logout-form" method="post" action="/auth/logout">
-        <wa-button type="submit" size="small" variant="neutral">Sign out</wa-button>
-      </form>
+<main class="profile-main">
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="avatar-large">{{.User.Initials}}</div>
+      <h1 class="profile-name">{{.User.FullName}}</h1>
+      <p class="profile-email">{{.User.Email}}</p>
     </div>
-  </nav>
 
-  <main class="main">
-    <a href="/" class="back-link">
-      <wa-icon name="arrow-left" style="font-size:0.875rem;"></wa-icon>
-      Back to home
-    </a>
-
-    <div class="profile-card">
-      <div class="profile-header">
-        <div class="avatar-large">{{.User.Initials}}</div>
-        <h1 class="profile-name">{{.User.FullName}}</h1>
-        <p class="profile-email">{{.User.Email}}</p>
+    <form class="profile-form" method="post" action="/profile">
+      <div class="field">
+        <label for="full-name">Full Name</label>
+        <wa-input
+          id="full-name"
+          name="full_name"
+          type="text"
+          value="{{.User.FullName}}"
+          autocomplete="name"
+          required
+          style="width:100%;"
+        ></wa-input>
       </div>
 
-      <form method="post" action="/profile">
-        <div class="field">
-          <label for="full-name">Full Name</label>
-          <wa-input
-            id="full-name"
-            name="full_name"
-            type="text"
-            value="{{.User.FullName}}"
-            autocomplete="name"
-            required
-            style="width:100%;"
-          ></wa-input>
-        </div>
+      <div class="field">
+        <label for="currency">Currency</label>
+        <select id="currency" name="currency" class="profile-select" required>
+          {{range .Currencies}}
+            <option value="{{.Code}}" {{if eq .Code $.User.Currency}}selected{{end}}>{{.Name}} ({{.Code}})</option>
+          {{end}}
+        </select>
+      </div>
 
-        <div class="field">
-          <label for="currency">Currency</label>
-          <select id="currency" name="currency" required>
-            {{range .Currencies}}
-              <option value="{{.Code}}" {{if eq .Code $.User.Currency}}selected{{end}}>{{.Name}} ({{.Code}})</option>
-            {{end}}
-          </select>
-        </div>
+      <div class="form-actions">
+        <wa-button type="submit" variant="brand" style="width:100%;">Save Changes</wa-button>
+      </div>
+    </form>
 
-        <div class="form-actions">
-          <wa-button type="submit" variant="brand" style="width:100%;">Save Changes</wa-button>
-        </div>
-      </form>
+    {{if .Success}}
+      <p class="alert alert-success">
+        <wa-icon name="circle-check" style="font-size:1rem;"></wa-icon>
+        {{.Success}}
+      </p>
+    {{end}}
 
-      {{if .Success}}
-        <p class="success">
-          <wa-icon name="circle-check" style="font-size:1rem;"></wa-icon>
-          {{.Success}}
-        </p>
-      {{end}}
-
-      {{if .Error}}
-        <p class="error">
-          <wa-icon name="circle-exclamation" style="font-size:1rem;"></wa-icon>
-          {{.Error}}
-        </p>
-      {{end}}
-    </div>
-  </main>
-
-</body>
-</html>
+    {{if .Error}}
+      <p class="alert alert-error">
+        <wa-icon name="circle-exclamation" style="font-size:1rem;"></wa-icon>
+        {{.Error}}
+      </p>
+    {{end}}
+  </div>
+</main>
