@@ -68,51 +68,38 @@ Work through each task in order. For each task:
 
 > **gopls LSP (Go files):** The `gopls-lsp` plugin provides live Go code intelligence. Use it for diagnostics, hover info, go-to-definition, and refactoring hints while editing `.go` files. If gopls flags a type error or unused import, fix it before moving on.
 
-> **Frontend / UI tasks (views/):** When implementing HTML templates or any UI work, invoke the `frontend-design` skill. It produces production-grade, visually distinctive interfaces — not generic boilerplate. Use it whenever you touch files under `views/`.
+> **Frontend / UI tasks (views/):** When implementing HTML templates or any UI work, invoke the `frontend-designer` agent (via the Task tool with `subagent_type: frontend-designer`). It produces production-grade, visually distinctive interfaces using HTMX, Web Awesome, and Go Fiber templates — not generic boilerplate. Use it whenever you touch files under `views/`.
 
 ### Step 5 — Unit tests
 
-Write unit tests for all non-trivial logic. Run them:
+Invoke the `unit-test-writer` agent (via the Task tool with `subagent_type: unit-test-writer`) to write comprehensive unit tests for all non-trivial logic added in this feature. The agent will:
+- Identify recently changed handlers, models, and logic
+- Write table-driven tests with happy paths and error cases
+- Use in-memory SQLite for database tests
+- Run `go test ./...` and iterate until all tests pass
 
-```bash
-go test ./...
-```
-
-Append the output under **Test Results**. If tests fail, fix the code or tests and re-run. Repeat until all pass.
+Append the agent's test results output under **Test Results**.
 
 ### Step 6 — Simplify
 
-Once unit tests pass, launch the `code-simplifier` agent (via the Task tool with `subagent_type: code-simplifier`) to refine all code modified during implementation. The agent will improve clarity, remove redundancy, and enforce project conventions — without changing behaviour.
+Once unit tests pass, invoke the `backend-code-simplifier` agent (via the Task tool with `subagent_type: backend-code-simplifier`) to refine all backend code modified during implementation. The agent will improve clarity, remove redundancy, and enforce Go/Fiber/GORM project conventions — without changing behaviour.
 
 If the agent proposes any changes, re-run `go test ./...` to confirm everything still passes before continuing.
 
 ### Step 7 — Playwright E2E tests
 
-Write Playwright tests in `e2e/` that exercise the feature through the browser.
-Test files follow the pattern `e2e/<feature>.spec.ts`.
-
-Run all E2E tests:
-
-```bash
-npx playwright test
-```
-
-Useful flags:
-
-```bash
-npx playwright test --headed          # watch tests run in the browser
-npx playwright test --ui              # interactive Playwright UI
-npx playwright test e2e/feature.spec.ts  # run a single spec
-npx playwright show-report            # open the HTML report after a run
-```
+Invoke the `playwright-e2e-tester` agent (via the Task tool with `subagent_type: playwright-e2e-tester`) to write and run end-to-end tests for the feature. The agent will:
+- Analyse the user flows and HTMX interactions introduced by the feature
+- Write Playwright tests in `e2e/<feature>.spec.ts`
+- Handle Web Awesome custom element selectors and HTMX async waits correctly
+- Run all E2E tests and iterate on failures until the suite is green
 
 > **Playwright MCP (if available):** When the Playwright MCP server is connected,
-> prefer using it to interact with and inspect the running app directly instead of
-> manually writing selectors. If Playwright tests are hard to get passing — e.g.
-> selectors can't be found or async timing is flaky — fall back to the Playwright
-> MCP to explore the live DOM and diagnose the issue before retrying.
+> the agent should prefer using it to interact with and inspect the running app directly
+> instead of manually writing selectors. If tests are hard to get passing, the MCP can
+> explore the live DOM and diagnose selector or timing issues.
 
-Append the output under **Test Results**. If tests fail, fix the code or tests and re-run. Repeat until all pass.
+Append the agent's test results output under **Test Results**.
 
 ### Step 8 — Verify
 
