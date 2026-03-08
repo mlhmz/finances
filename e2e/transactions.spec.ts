@@ -241,6 +241,57 @@ test.describe("Amount storage", () => {
 	});
 });
 
+// ── New transaction form ──────────────────────────────────────────────────────
+
+test.describe("New transaction form", () => {
+	test("GET /transactions/new returns HTTP 200", async ({ request }) => {
+		const email = `e2e-new-form-http-${TS}@example.com`;
+		await registerAndLogin(request, email);
+
+		const res = await request.get("/transactions/new");
+		expect(res.status()).toBe(200);
+	});
+
+	test("GET /transactions/new response sets HX-Trigger header containing openTransactionForm", async ({
+		request,
+	}) => {
+		const email = `e2e-new-form-trigger-${TS}@example.com`;
+		await registerAndLogin(request, email);
+
+		const res = await request.get("/transactions/new");
+		expect(res.headers()["hx-trigger"]).toContain("openTransactionForm");
+	});
+
+	test("GET /transactions/new returns blank form content (not pre-filled)", async ({
+		request,
+	}) => {
+		const email = `e2e-new-form-blank-${TS}@example.com`;
+		await registerAndLogin(request, email);
+
+		const res = await request.get("/transactions/new");
+		const body = await res.text();
+		// Should say "New Transaction" not "Edit Transaction"
+		expect(body).toContain("New Transaction");
+		expect(body).not.toContain("Edit Transaction");
+	});
+
+	test("GET /transactions/new response body contains form markup with form fields", async ({
+		request,
+	}) => {
+		const email = `e2e-new-form-markup-${TS}@example.com`;
+		await registerAndLogin(request, email);
+
+		const res = await request.get("/transactions/new");
+		const body = await res.text();
+		// Check for form fields: title, amount, currency, date, description
+		expect(body).toContain('name="title"');
+		expect(body).toContain('name="amount"');
+		expect(body).toContain('name="currency"');
+		expect(body).toContain('name="date"');
+		expect(body).toContain('name="description"');
+	});
+});
+
 // ── Edit transaction ──────────────────────────────────────────────────────────
 
 test.describe("Edit transaction", () => {
@@ -267,6 +318,22 @@ test.describe("Edit transaction", () => {
 		expect(body).toContain("Original title");
 		expect(body).toContain("55.00");
 		expect(body).toContain("Edit Transaction");
+	});
+
+	test("GET /transactions/:id/edit returns HX-Trigger header containing openTransactionForm", async ({
+		request,
+	}) => {
+		const email = `e2e-edit-form-trigger-${TS}@example.com`;
+		await registerAndLogin(request, email);
+
+		await createTransaction(request, { title: "To edit" });
+
+		const listBody = await (await request.get("/transactions")).text();
+		const idMatch = listBody.match(/id="tx-([^"]+)"/);
+		const txId = idMatch![1];
+
+		const res = await request.get(`/transactions/${txId}/edit`);
+		expect(res.headers()["hx-trigger"]).toContain("openTransactionForm");
 	});
 
 	test("PUT /transactions/:id with valid data returns updated row", async ({

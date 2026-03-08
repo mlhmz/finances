@@ -87,6 +87,7 @@ func main() {
 	// Transaction routes
 	protected.Get("/transactions", handlers.TransactionsPage)
 	protected.Post("/transactions", handlers.CreateTransaction)
+	protected.Get("/transactions/new", handlers.NewTransactionForm)
 	protected.Get("/transactions/:id/edit", handlers.EditTransactionForm)
 	protected.Put("/transactions/:id", handlers.UpdateTransaction)
 	protected.Get("/transactions/:id/row", handlers.TransactionRow)

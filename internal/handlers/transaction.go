@@ -90,6 +90,13 @@ func CreateTransaction(c *fiber.Ctx) error {
 	return c.Render("partials/transaction_row", t)
 }
 
+// NewTransactionForm handles GET /transactions/new — returns a blank create form.
+func NewTransactionForm(c *fiber.Ctx) error {
+	userID := middleware.CurrentUserID(c)
+	c.Set("HX-Trigger", "openTransactionForm")
+	return renderTransactionForm(c, userID, false, nil, nil, nil)
+}
+
 // EditTransactionForm handles GET /transactions/:id/edit.
 func EditTransactionForm(c *fiber.Ctx) error {
 	userID := middleware.CurrentUserID(c)
@@ -101,6 +108,7 @@ func EditTransactionForm(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).SendString("Transaction not found.")
 	}
 
+	c.Set("HX-Trigger", "openTransactionForm")
 	return renderTransactionForm(c, userID, true, t, nil, nil)
 }
 

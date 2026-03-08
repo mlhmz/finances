@@ -15,8 +15,7 @@
           class="tx-menu-item"
           hx-get="/transactions/{{.ID}}/edit"
           hx-target="#tx-form-content"
-          hx-swap="innerHTML"
-          hx-on::after-settle="openTxForm()">Edit</button>
+          hx-swap="innerHTML">Edit</button>
         <button
           class="tx-menu-item tx-menu-delete"
           hx-get="/transactions/{{.ID}}/confirm-delete"

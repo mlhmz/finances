@@ -481,13 +481,19 @@
 <!-- Mobile header -->
 <header class="mobile-header">
   <span class="mobile-header-title">Transactions</span>
-  <wa-button size="small" variant="brand" onclick="openTxForm()">+ New</wa-button>
+  <wa-button size="small" variant="brand"
+    hx-get="/transactions/new"
+    hx-target="#tx-form-content"
+    hx-swap="innerHTML">+ New</wa-button>
 </header>
 
 <!-- Desktop page header -->
 <div class="page-header">
   <h1 class="page-title">Transactions</h1>
-  <wa-button variant="brand" onclick="openTxForm()">
+  <wa-button variant="brand"
+    hx-get="/transactions/new"
+    hx-target="#tx-form-content"
+    hx-swap="innerHTML">
     <wa-icon slot="prefix" name="plus"></wa-icon>
     New Transaction
   </wa-button>
@@ -557,6 +563,10 @@
   // Close on backdrop click
   document.getElementById('tx-overlay').addEventListener('click', function(e) {
     if (e.target === this) closeTxForm();
+  });
+
+  document.addEventListener('openTransactionForm', function() {
+    openTxForm();
   });
 
   // Close after successful create/edit via HX-Trigger
